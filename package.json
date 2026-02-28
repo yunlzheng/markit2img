@@ -1,0 +1,38 @@
+{
+  "name": "markit2img",
+  "version": "1.0.0",
+  "description": "Markdown to image converter with multiple styles",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "markit2img": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/cli.ts",
+    "test": "jest"
+  },
+  "keywords": [
+    "markdown",
+    "image",
+    "png",
+    "puppeteer",
+    "converter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.0.0",
+    "marked": "^12.0.0",
+    "puppeteer": "^24.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/puppeteer": "^5.4.7",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "puppeteer": {
+    "skipDownload": true
+  }
+}
