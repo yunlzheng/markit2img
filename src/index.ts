@@ -5,6 +5,29 @@ import * as fs from 'fs';
 export type StyleName = 'github' | 'notion' | 'dark' | 'minimal';
 export type OutputFormat = 'png' | 'jpeg';
 
+export interface TypographyOptions {
+  h1Size?: number;
+  h2Size?: number;
+  h3Size?: number;
+  bodySize?: number;
+  lineHeight?: number;
+}
+
+export interface ColorOptions {
+  background?: string;
+  headerColor?: string;
+  bodyColor?: string;
+  linkColor?: string;
+  codeBackground?: string;
+}
+
+export interface LayoutOptions {
+  padding?: number;
+  borderWidth?: number;
+  borderColor?: string;
+  borderRadius?: number;
+}
+
 export interface SizePreset {
   name: string;
   width: number;
@@ -42,10 +65,28 @@ export interface Md2ImgOptions {
   deviceScaleFactor?: number;
   format?: OutputFormat;
   quality?: number;
-  customCss?: string;
   useSystemChrome?: boolean;
   chromePath?: string;
   size?: string;
+  // Typography
+  h1Size?: number;
+  h2Size?: number;
+  h3Size?: number;
+  bodySize?: number;
+  lineHeight?: number;
+  // Colors
+  background?: string;
+  headerColor?: string;
+  bodyColor?: string;
+  linkColor?: string;
+  codeBackground?: string;
+  // Layout
+  padding?: number;
+  borderWidth?: number;
+  borderColor?: string;
+  borderRadius?: number;
+  // Custom CSS
+  customCss?: string;
 }
 
 export interface Md2ImgResult {
@@ -55,11 +96,52 @@ export interface Md2ImgResult {
   format: OutputFormat;
 }
 
-const STYLES: Record<StyleName, string> = {
-  github: `:root{--bg:#fff;--text:#24292f;--link:#0969da;--code-bg:#f6f8fa;--border:#d0d7de;--quote:#57606a}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;line-height:1.6;color:var(--text);background:var(--bg);padding:32px}h1,h2,h3,h4,h5,h6{margin-top:24px;margin-bottom:16px;font-weight:600}h1{font-size:2em;border-bottom:1px solid var(--border);padding-bottom:.3em}h2{font-size:1.5em;border-bottom:1px solid var(--border);padding-bottom:.3em}p{margin-bottom:16px}a{color:var(--link)}code{padding:.2em .4em;font-size:85%;background:var(--code-bg);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}pre{padding:16px;overflow:auto;background:var(--code-bg);border-radius:6px}pre code{background:transparent;padding:0}blockquote{padding:0 1em;color:var(--quote);border-left:.25em solid var(--border);margin:0 0 16px 0}ul,ol{padding-left:2em;margin-bottom:16px}table{border-collapse:collapse;margin-bottom:16px}th,td{padding:6px 13px;border:1px solid var(--border)}th{font-weight:600;background:var(--code-bg)}hr{border:0;border-top:1px solid var(--border);margin:24px 0}`,
-  notion: `:root{--bg:#fff;--text:#37352f;--link:#37352f;--code-bg:rgba(135,131,120,0.15);--border:#e9e9e7;--quote:#787774}body{font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;line-height:1.7;color:var(--text);background:var(--bg);padding:40px}h1,h2,h3,h4,h5,h6{margin-top:28px;margin-bottom:4px;font-weight:600}h1{font-size:2.5em}h2{font-size:1.8em}p{margin-bottom:12px}a{color:var(--link);text-decoration:underline}code{padding:2px 5px;font-size:85%;background:var(--code-bg);border-radius:3px;font-family:SFMono-Regular,Menlo,monospace}pre{padding:16px;overflow:auto;background:var(--code-bg);border-radius:3px}pre code{background:transparent}blockquote{padding-left:14px;border-left:3px solid var(--text);margin:0 0 12px 0;color:var(--quote)}ul,ol{padding-left:24px;margin-bottom:12px}table{border-collapse:collapse}th,td{padding:8px 12px;border-bottom:1px solid var(--border)}`,
-  dark: `:root{--bg:#0d1117;--text:#c9d1d9;--link:#58a6ff;--code-bg:#161b22;--border:#30363d;--quote:#8b949e}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;line-height:1.6;color:var(--text);background:var(--bg);padding:32px}h1,h2,h3,h4,h5,h6{margin-top:24px;margin-bottom:16px;font-weight:600;color:#f0f6fc}h1{font-size:2em;border-bottom:1px solid var(--border);padding-bottom:.3em}h2{font-size:1.5em;border-bottom:1px solid var(--border);padding-bottom:.3em}p{margin-bottom:16px}a{color:var(--link)}code{padding:.2em .4em;font-size:85%;background:var(--code-bg);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}pre{padding:16px;overflow:auto;background:var(--code-bg);border-radius:6px}pre code{background:transparent}blockquote{padding:0 1em;color:var(--quote);border-left:.25em solid var(--border);margin:0 0 16px 0}ul,ol{padding-left:2em;margin-bottom:16px}table{border-collapse:collapse;margin-bottom:16px}th,td{padding:6px 13px;border:1px solid var(--border)}th{font-weight:600;background:var(--code-bg)}`,
-  minimal: `:root{--bg:#fff;--text:#333;--link:#0066cc;--code-bg:#f5f5f5;--border:#e0e0e0;--quote:#666}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.7;color:var(--text);background:var(--bg);padding:24px}h1,h2,h3,h4,h5,h6{margin-top:24px;margin-bottom:12px;font-weight:600}h1{font-size:1.8em}h2{font-size:1.4em}p{margin-bottom:12px}a{color:var(--link)}code{padding:2px 6px;font-size:90%;background:var(--code-bg);border-radius:3px;font-family:SFMono-Regular,Menlo,monospace}pre{padding:12px;overflow:auto;background:var(--code-bg);border-radius:3px}pre code{background:transparent}blockquote{padding-left:12px;border-left:3px solid var(--border);margin:12px 0;color:var(--quote)}ul,ol{padding-left:20px}table{border-collapse:collapse}th,td{padding:8px 12px;border-bottom:1px solid var(--border)}`,
+const BASE_STYLES: Record<StyleName, string> = {
+  github: `
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+    a { text-decoration: none; }
+    h1, h2 { border-bottom: 1px solid #e1e4e8; padding-bottom: .3em; }
+    code { border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    pre { border-radius: 6px; }
+    blockquote { border-left: .25em solid #dfe2e5; }
+    table { border-collapse: collapse; }
+    th, td { border: 1px solid #dfe2e5; padding: 6px 13px; }
+    th { font-weight: 600; }
+  `,
+  notion: `
+    body { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+    a { text-decoration: underline; }
+    code { border-radius: 3px; font-family: SFMono-Regular, Menlo, monospace; }
+    pre { border-radius: 3px; }
+    blockquote { border-left: 3px solid; }
+    th, td { border-bottom: 1px solid; padding: 8px 12px; }
+  `,
+  dark: `
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+    a { text-decoration: none; }
+    h1, h2 { border-bottom: 1px solid; padding-bottom: .3em; }
+    code { border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    pre { border-radius: 6px; }
+    blockquote { border-left: .25em solid; }
+    table { border-collapse: collapse; }
+    th, td { border: 1px solid; padding: 6px 13px; }
+    th { font-weight: 600; }
+  `,
+  minimal: `
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    a { text-decoration: none; }
+    code { border-radius: 3px; font-family: SFMono-Regular, Menlo, monospace; }
+    pre { border-radius: 3px; }
+    blockquote { border-left: 3px solid; }
+    th, td { border-bottom: 1px solid; padding: 8px 12px; }
+  `,
+};
+
+const DEFAULT_COLORS: Record<StyleName, ColorOptions> = {
+  github: { background: '#ffffff', headerColor: '#24292f', bodyColor: '#24292f', linkColor: '#0969da', codeBackground: '#f6f8fa' },
+  notion: { background: '#ffffff', headerColor: '#37352f', bodyColor: '#37352f', linkColor: '#37352f', codeBackground: 'rgba(135,131,120,0.15)' },
+  dark: { background: '#0d1117', headerColor: '#f0f6fc', bodyColor: '#c9d1d9', linkColor: '#58a6ff', codeBackground: '#161b22' },
+  minimal: { background: '#ffffff', headerColor: '#333333', bodyColor: '#333333', linkColor: '#0066cc', codeBackground: '#f5f5f5' },
 };
 
 let browser: Browser | null = null;
@@ -78,6 +160,94 @@ export async function closeBrowser(): Promise<void> {
   if (browser) { await browser.close(); browser = null; }
 }
 
+function buildCss(options: Md2ImgOptions): string {
+  const style = options.style || 'github';
+  const defaults = DEFAULT_COLORS[style];
+  
+  const h1Size = options.h1Size || 28;
+  const h2Size = options.h2Size || 22;
+  const h3Size = options.h3Size || 18;
+  const bodySize = options.bodySize || 14;
+  const lineHeight = options.lineHeight || 1.6;
+  
+  const bg = options.background || defaults.background || '#ffffff';
+  const headerColor = options.headerColor || defaults.headerColor || '#333333';
+  const bodyColor = options.bodyColor || defaults.bodyColor || '#333333';
+  const linkColor = options.linkColor || defaults.linkColor || '#0969da';
+  const codeBg = options.codeBackground || defaults.codeBackground || '#f5f5f5';
+  
+  const padding = options.padding || 32;
+  const borderWidth = options.borderWidth || 0;
+  const borderColor = options.borderColor || '#e1e4e8';
+  const borderRadius = options.borderRadius || 0;
+  
+  return `
+    :root {
+      --bg: ${bg};
+      --header-color: ${headerColor};
+      --body-color: ${bodyColor};
+      --link-color: ${linkColor};
+      --code-bg: ${codeBg};
+      --border-color: ${borderColor};
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { margin: 0; padding: 0; }
+    
+    body {
+      background: var(--bg);
+      color: var(--body-color);
+      font-size: ${bodySize}px;
+      line-height: ${lineHeight};
+      padding: ${padding}px;
+      ${borderWidth > 0 ? `border: ${borderWidth}px solid var(--border-color);` : ''}
+      ${borderRadius > 0 ? `border-radius: ${borderRadius}px;` : ''}
+    }
+    
+    h1, h2, h3, h4, h5, h6 { color: var(--header-color); margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 600; }
+    h1 { font-size: ${h1Size}px; }
+    h2 { font-size: ${h2Size}px; }
+    h3 { font-size: ${h3Size}px; }
+    h4 { font-size: ${h3Size}px; }
+    
+    p { margin-bottom: 1em; }
+    a { color: var(--link-color); }
+    
+    code { 
+      background: var(--code-bg); 
+      padding: 0.2em 0.4em; 
+      font-size: 0.9em;
+    }
+    pre { 
+      background: var(--code-bg); 
+      padding: 1em; 
+      overflow-x: auto;
+      margin-bottom: 1em;
+    }
+    pre code { background: transparent; padding: 0; }
+    
+    blockquote { 
+      border-left: 4px solid var(--border-color); 
+      padding-left: 1em; 
+      margin: 1em 0;
+      color: #666;
+    }
+    
+    ul, ol { padding-left: 2em; margin-bottom: 1em; }
+    li { margin: 0.25em 0; }
+    
+    table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
+    th, td { border: 1px solid var(--border-color); padding: 8px 12px; text-align: left; }
+    th { background: var(--code-bg); font-weight: 600; }
+    
+    hr { border: none; border-top: 1px solid var(--border-color); margin: 2em 0; }
+    img { max-width: 100%; }
+    
+    ${BASE_STYLES[style]}
+    ${options.customCss || ''}
+  `;
+}
+
 export async function md2img(markdown: string, options: Md2ImgOptions = {}): Promise<Md2ImgResult> {
   let width = options.width || 800;
   let fixedHeight = options.height;
@@ -89,11 +259,10 @@ export async function md2img(markdown: string, options: Md2ImgOptions = {}): Pro
   }
   
   const scale = options.deviceScaleFactor || 2;
-  const styleCss = STYLES[options.style || 'github'];
-  const padding = width >= 1080 ? 48 : 32;
-  
+  const css = buildCss(options);
   const html = await marked(markdown);
-  const fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{box-sizing:border-box;margin:0;padding:0}html,body{margin:0;padding:0}${styleCss}body{padding:${padding}px}</style></head><body>${html}</body></html>`;
+  
+  const fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}</body></html>`;
   
   const b = await getBrowser(options.useSystemChrome !== false, options.chromePath);
   const page = await b.newPage();

@@ -10,30 +10,48 @@ program
   .name('markit2img')
   .description('Convert Markdown to image with multiple styles')
   .version('1.0.0')
-  .argument('[input]', 'Input markdown file path or markdown string')
-  .option('-o, --output <path>', 'Output image path (default: output.png)')
+  .argument('[input]', 'Input markdown file or string')
+  .option('-o, --output <path>', 'Output image path', 'output.png')
   .option('-s, --style <style>', 'Style: github, notion, dark, minimal', 'github')
-  .option('--size <preset>', 'Size preset (e.g., wechat-moment, mobile)')
-  .option('-w, --width <pixels>', 'Image width in pixels')
-  .option('--height <pixels>', 'Fixed height in pixels')
+  .option('--size <preset>', 'Size preset (wechat-moment, xiaohongshu, etc.)')
+  .option('-w, --width <pixels>', 'Image width')
+  .option('--height <pixels>', 'Fixed height')
   .option('--scale <ratio>', 'Device scale factor', '2')
-  .option('-f, --format <format>', 'Output format: png or jpeg', 'png')
+  .option('-f, --format <format>', 'Output format: png, jpeg', 'png')
   .option('-q, --quality <1-100>', 'JPEG quality', '90')
-  .option('--list-sizes', 'List all size presets')
+  // Typography
+  .option('--h1-size <px>', 'H1 font size')
+  .option('--h2-size <px>', 'H2 font size')
+  .option('--h3-size <px>', 'H3 font size')
+  .option('--body-size <px>', 'Body font size')
+  .option('--line-height <num>', 'Line height')
+  // Colors
+  .option('--bg <color>', 'Background color (e.g., #ffffff)')
+  .option('--header-color <color>', 'Header text color')
+  .option('--body-color <color>', 'Body text color')
+  .option('--link-color <color>', 'Link color')
+  .option('--code-bg <color>', 'Code background color')
+  // Layout
+  .option('--padding <px>', 'Padding', '32')
+  .option('--border-width <px>', 'Border width')
+  .option('--border-color <color>', 'Border color')
+  .option('--border-radius <px>', 'Border radius')
+  // Commands
+  .option('--list-sizes', 'List size presets')
   .action(async (input: string | undefined, options) => {
     if (options.listSizes) {
       console.log('\n可用的尺寸预设:\n');
       for (const p of listSizePresets()) {
-        const dim = p.height ? `${p.width}x${p.height}` : `${p.width}px (自适应高度)`;
-        console.log(`  ${(p.name).padEnd(20)} ${dim.padEnd(22)} ${p.description}`);
+        const dim = p.height ? `${p.width}x${p.height}` : `${p.width}px (自适应)`;
+        console.log(`  ${p.name.padEnd(20)} ${dim.padEnd(20)} ${p.description}`);
       }
       console.log('\n用法: markit2img input.md --size wechat-moment');
       process.exit(0);
     }
 
     if (!input) {
-      console.error('Error: missing required argument \'input\'');
-      console.error('Run with --help for usage information');
+      console.error('Error: missing input');
+      console.error('Usage: markit2img <input.md> [options]');
       process.exit(1);
     }
 
@@ -60,6 +78,23 @@ program
         format: options.format as OutputFormat,
         quality,
         useSystemChrome: true,
+        // Typography
+        h1Size: options.h1Size ? parseInt(options.h1Size, 10) : undefined,
+        h2Size: options.h2Size ? parseInt(options.h2Size, 10) : undefined,
+        h3Size: options.h3Size ? parseInt(options.h3Size, 10) : undefined,
+        bodySize: options.bodySize ? parseInt(options.bodySize, 10) : undefined,
+        lineHeight: options.lineHeight ? parseFloat(options.lineHeight) : undefined,
+        // Colors
+        background: options.bg,
+        headerColor: options.headerColor,
+        bodyColor: options.bodyColor,
+        linkColor: options.linkColor,
+        codeBackground: options.codeBg,
+        // Layout
+        padding: parseInt(options.padding, 10),
+        borderWidth: options.borderWidth ? parseInt(options.borderWidth, 10) : undefined,
+        borderColor: options.borderColor,
+        borderRadius: options.borderRadius ? parseInt(options.borderRadius, 10) : undefined,
       };
       
       const sizeInfo = options.size ? ` (${options.size})` : '';
@@ -67,10 +102,8 @@ program
       
       let result;
       if (isFile) {
-        console.log(`Input file: ${input}`);
         result = await mdFile2img(input, outputPath, convertOptions);
       } else {
-        console.log('Input: markdown string');
         result = await md2img(input, convertOptions);
         await fs.promises.writeFile(outputPath, result.buffer);
       }
